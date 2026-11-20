@@ -1,0 +1,21 @@
+{
+  "name": "cover-test-app",
+  "version": "1.1.0",
+  "description": "Cover test - 眼科遮盖法与复合眼位棱镜排镜教学仿真系统",
+  "author": "玉米 (VX: kwqwq3)",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve www",
+    "cap:sync": "npx cap sync",
+    "cap:android": "npx cap open android",
+    "cap:ios": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  }
+}

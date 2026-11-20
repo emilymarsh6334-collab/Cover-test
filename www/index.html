@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Cover test</title>
+  <meta name="application-name" content="Cover test" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Cover test" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#ffffff" id="metaThemeColor" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/png" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body data-active-mtab="prism">
+  <!-- 顶部原生 App 栏 -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <img class="brand-icon" src="./icons/icon-192.png" alt="Cover test" />
+        <div class="brand-text">
+          <div class="brand-title-row">
+            <h1>Cover test</h1>
+            <span class="ver-pill">v1.1</span>
+          </div>
+          <span class="brand-sub">眼科遮盖法与复合眼位棱镜排镜仿真</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="seg-group major-mode desktop-only-mode" id="appModeGroupDesktop">
+          <button class="seg-btn active" data-mode="teach">自由仿真</button>
+          <button class="seg-btn" data-mode="exam">棱镜实战 (PACT)</button>
+        </div>
+
+        <div class="seg-group" id="distGroup">
+          <button class="seg-btn active" data-dist="distance">5m</button>
+          <button class="seg-btn" data-dist="near">40cm</button>
+        </div>
+
+        <button class="icon-btn" id="btnOpenSettings" aria-label="设置" title="设置与关于">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 手机端模式切换条 -->
+  <div class="mobile-mode-strip">
+    <div class="seg-group major-mode" id="appModeGroupMobile">
+      <button class="seg-btn active" data-mode="teach">眼位自由仿真</button>
+      <button class="seg-btn" data-mode="exam">棱镜排镜实战 (PACT)</button>
+    </div>
+  </div>
+
+  <main>
+    <!-- 吸顶画布 + 遮盖板控制栏 -->
+    <section class="stage-card">
+      <div class="stage-topbar">
+        <div class="eye-status-badges">
+          <span class="badge ok" id="prismBadge">眼位：外偏12Δ</span>
+          <span class="badge purple" id="appliedPrismBadge">排镜：0Δ</span>
+          <span class="badge warn" id="hirschbergBadge">映光：居中</span>
+          <span class="badge" id="currentModeBadge">基本型外隐斜 (X)</span>
+        </div>
+        <div class="stage-switches">
+          <label class="pill-toggle" id="torsionPill" title="显示虹膜12点旋转参考刻度">
+            <input type="checkbox" id="torsionToggle" />
+            <span>12点刻度</span>
+          </label>
+          <label class="pill-toggle" id="xrayPill">
+            <input type="checkbox" id="xrayToggle" />
+            <span>透视</span>
+          </label>
+          <label class="pill-toggle" id="slowPill">
+            <input type="checkbox" id="slowToggle" />
+            <span>慢放</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="canvas-wrap" id="canvasWrap" title="点击左侧遮盖右眼(OD)，点击右侧遮盖左眼(OS)">
+        <canvas id="eyeCanvas"></canvas>
+      </div>
+
+      <div class="watch-hint-bar">
+        <div class="watch-pill" id="hintOD">患者右眼 (OD) — 点击画布左侧遮盖</div>
+        <div class="watch-pill" id="hintOS">患者左眼 (OS) — 点击画布右侧遮盖</div>
+      </div>
+
+      <div class="occluder-bar">
+        <button class="btn" id="btnCoverOD">遮右眼 OD</button>
+        <button class="btn" id="btnCoverOS">遮左眼 OS</button>
+        <button class="btn" id="btnUncover">移开去遮盖</button>
+        <button class="btn primary" id="btnAlternate">交替 ACT</button>
+      </div>
+    </section>
+
+    <!-- 主工作区 -->
+    <section class="workspace-grid">
+      <div class="col-stack">
+        <!-- 棱镜排镜中和实战考场 -->
+        <div class="panel hidden" id="examPanel" data-mtab="prism">
+          <div class="panel-title">
+            <span>棱镜排镜中和实战 (PACT)</span>
+            <span class="badge purple" id="examStatusBadge">准备出题</span>
+          </div>
+
+          <div class="exam-banner">
+            <h3 id="examStepTitle">选择随机盲测，或先在“眼位设定”自设斜视位再盲测</h3>
+            <p id="examStepDesc">开启盲测后隐藏真实度数，请用交替遮盖 (ACT) + 下方棱镜排镜中和至眼球完全不动后提交核对。</p>
+            <div class="exam-actions">
+              <button class="btn primary sm" id="btnRandHoriz">随机水平</button>
+              <button class="btn primary sm" id="btnRandVert">随机垂直</button>
+              <button class="btn primary sm" id="btnRandComplex">随机复合</button>
+              <button class="btn sm" id="btnLockCustom">用自设位盲测</button>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn success" id="btnSubmitExam" style="flex:1;">提交排镜 · 核对答案</button>
+            <button class="btn" id="btnRevealExam">看答案</button>
+          </div>
+
+          <div class="exam-result-box" id="examResultBox"></div>
+        </div>
+
+        <!-- 棱镜排镜面板（滑动模块在上，2D排镜盘在下） -->
+        <div class="panel" data-mtab="prism">
+          <div class="panel-title">
+            <span>棱镜排镜 (滑块 + 2D/360° 盘)</span>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <div class="seg-group" id="prismEyeGroup">
+                <button class="seg-btn active" data-peye="OD">右眼 OD</button>
+                <button class="seg-btn" data-peye="OS">左眼 OS</button>
+              </div>
+              <button class="btn sm" id="btnResetPrism">归零</button>
+            </div>
+          </div>
+
+          <div class="prism-widget">
+            <!-- 上：滑动调整模块与实时读数 -->
+            <div class="prism-controls-col">
+              <div class="prism-readout-grid">
+                <div class="readout-card">
+                  <div class="r-label">水平 (H)</div>
+                  <div class="r-val" id="readPrismH">0Δ</div>
+                </div>
+                <div class="readout-card">
+                  <div class="r-label">垂直 (V)</div>
+                  <div class="r-val" id="readPrismV">0Δ</div>
+                </div>
+                <div class="readout-card highlight">
+                  <div class="r-label">360° 合成</div>
+                  <div class="r-val" id="readPrismPolar">0Δ @ 0°</div>
+                </div>
+              </div>
+
+              <div class="slider-row">
+                <label>
+                  <span>水平基底 (0 居中 · 步长 <span class="stepHint">1</span>Δ)</span>
+                  <strong id="lblSliderH" style="color:var(--primary);">0Δ</strong>
+                </label>
+                <div class="stepper-wrap">
+                  <button class="step-btn" id="btnHMinus" aria-label="水平减少">−</button>
+                  <input type="range" id="sliderPrismH" min="-45" max="45" step="1" value="0" />
+                  <button class="step-btn" id="btnHPlus" aria-label="水平增加">+</button>
+                </div>
+                <div class="slider-endpoints">
+                  <span id="endLeftH">← BO 底外 (180°)</span>
+                  <span>0</span>
+                  <span id="endRightH">BI 底内 (0°) →</span>
+                </div>
+              </div>
+
+              <div class="slider-row">
+                <label>
+                  <span>垂直基底 (0 居中 · 步长 <span class="stepHint">1</span>Δ)</span>
+                  <strong id="lblSliderV" style="color:var(--primary);">0Δ</strong>
+                </label>
+                <div class="stepper-wrap">
+                  <button class="step-btn" id="btnVMinus" aria-label="垂直减少">−</button>
+                  <input type="range" id="sliderPrismV" min="-25" max="25" step="1" value="0" />
+                  <button class="step-btn" id="btnVPlus" aria-label="垂直增加">+</button>
+                </div>
+                <div class="slider-endpoints">
+                  <span>← BD 底朝下 (270°)</span>
+                  <span>0</span>
+                  <span>BU 底朝上 (90°) →</span>
+                </div>
+              </div>
+
+              <div class="slider-row">
+                <label>
+                  <span>360° 基底角 (外圈同步)</span>
+                  <strong id="lblSliderAngle" style="color:var(--purple);">0°</strong>
+                </label>
+                <div class="stepper-wrap">
+                  <button class="step-btn" id="btnAMinus" aria-label="角度减5">−</button>
+                  <input type="range" class="purple-range" id="sliderPrismAngle" min="0" max="359" step="1" value="0" />
+                  <button class="step-btn" id="btnAPlus" aria-label="角度加5">+</button>
+                </div>
+                <div class="slider-endpoints">
+                  <span>0°</span>
+                  <span>90°(BU)</span>
+                  <span>180°</span>
+                  <span>270°(BD)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 下：2D 十字 + 外圈 360° 排镜盘 -->
+            <div class="prism-dial-wrap">
+              <canvas id="prismDial" width="224" height="224"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- 患者真实眼位设定面板 -->
+        <div class="panel" id="patientConfigPanel" data-mtab="patient">
+          <div class="panel-title">
+            <span>患者眼位设定 (水平 + 垂直复合)</span>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span id="editingDistLabel" class="badge">看远 5m</span>
+              <button class="btn sm" id="btnSaveCustomCase">+ 收藏病例</button>
+            </div>
+          </div>
+
+          <div class="preset-section">
+            <span class="sub-label">
+              <span>快捷临床病例与收藏（手机可横滑）</span>
+            </span>
+            <div class="preset-chips" id="presetChips"></div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-item">
+              <label for="selType">眼位性质 (Deviation Type)</label>
+              <select id="selType">
+                <option value="ortho">正位眼 (Ortho)</option>
+                <option value="phoria">隐斜视 (Phoria)</option>
+                <option value="constant">单眼恒定性显斜 (Constant Tropia)</option>
+                <option value="alternating">双眼交替性显斜 (Alternating Tropia)</option>
+                <option value="intermittent">间歇性显斜 (Intermittent Tropia)</option>
+                <option value="dvd">分离性垂直偏斜 (DVD)</option>
+              </select>
+            </div>
+
+            <div class="form-item">
+              <label for="selEye">主斜眼 (恒定性显斜时)</label>
+              <select id="selEye">
+                <option value="OD">右眼 (OD) 偏斜 / 左眼固视</option>
+                <option value="OS">左眼 (OS) 偏斜 / 右眼固视</option>
+              </select>
+            </div>
+
+            <div class="form-item full">
+              <label for="selRecovery">融像恢复速度 (隐斜 / 间歇性斜视)</label>
+              <select id="selRecovery">
+                <option value="fast">快速恢复 (控制力佳)</option>
+                <option value="medium">中速恢复 (控制力一般)</option>
+                <option value="slow">迟缓恢复 (控制力差)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="axis-box">
+            <div class="axis-box-title">
+              <span>水平分量 (Horizontal)</span>
+              <span id="valHText" style="color:var(--primary);">外偏 (Exo) 12Δ</span>
+            </div>
+            <div class="form-grid" style="margin-top:0;">
+              <div class="form-item">
+                <select id="selHDir">
+                  <option value="none">无水平偏斜 (0Δ)</option>
+                  <option value="exo">外偏 (Exo / 颞侧)</option>
+                  <option value="eso">内偏 (Eso / 鼻侧)</option>
+                </select>
+              </div>
+              <div class="form-item" style="justify-content:center;">
+                <input type="range" id="rangeHPrism" min="0" max="45" step="1" value="12" />
+              </div>
+            </div>
+          </div>
+
+          <div class="axis-box">
+            <div class="axis-box-title">
+              <span>垂直分量 (Vertical · 可叠加)</span>
+              <span id="valVText" style="color:var(--primary);">无垂直偏斜 (0Δ)</span>
+            </div>
+            <div class="form-grid" style="margin-top:0;">
+              <div class="form-item">
+                <select id="selVDir">
+                  <option value="none">无垂直偏斜 (0Δ)</option>
+                  <option value="r_hyper">右眼上斜 / 左眼下斜 (RHT/RH)</option>
+                  <option value="l_hyper">左眼上斜 / 右眼下斜 (LHT/LH)</option>
+                </select>
+              </div>
+              <div class="form-item" style="justify-content:center;">
+                <input type="range" id="rangeVPrism" min="0" max="25" step="1" value="0" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 旋转分量 (Cyclodeviation) -->
+          <div class="axis-box">
+            <div class="axis-box-title">
+              <span>旋转分量 (Cyclo · 虹膜12点扭转)</span>
+              <span id="valCText" style="color:var(--purple);">无旋转偏斜 (0°)</span>
+            </div>
+            <div class="form-grid" style="margin-top:0;">
+              <div class="form-item">
+                <select id="selCDir">
+                  <option value="none">无旋转偏斜 (0°)</option>
+                  <option value="excyclo">外旋 (Excyclo · 12点向颞侧)</option>
+                  <option value="incyclo">内旋 (Incyclo · 12点向鼻侧)</option>
+                </select>
+              </div>
+              <div class="form-item" style="justify-content:center;">
+                <input type="range" class="purple-range" id="rangeCDeg" min="0" max="20" step="1" value="0" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 假性斜视：Kappa 角模拟 -->
+          <div class="axis-box">
+            <div class="axis-box-title">
+              <span>Kappa 角模拟 (鉴别假性斜视)</span>
+              <span id="valKappaText" style="color:var(--muted);">正常 (0Δ)</span>
+            </div>
+            <div class="form-item" style="margin-top:2px;">
+              <input type="range" id="rangeKappa" min="-15" max="15" step="1" value="0" />
+              <div class="slider-endpoints">
+                <span>−15Δ 负Kappa(似内斜)</span>
+                <span>0</span>
+                <span>+15Δ 正Kappa(似外斜) →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 临床注文面板 -->
+      <div class="panel" data-mtab="notes">
+        <div class="panel-title">
+          <span>临床每步操作与眼动注文解析</span>
+          <span style="font-size:12px; color:var(--muted); font-weight:500;">实时解算</span>
+        </div>
+
+        <span class="step-tag" id="noteStageTag">自然双眼注视 (Binocular Viewing)</span>
+
+        <div class="note-box">
+          <h3 id="noteTitle">双眼自然睁开，注视调节性视标</h3>
+          <p id="noteDesc">点击上方遮盖按钮或直接点击画布中的眼球，观察眼位微动；也可使用棱镜排镜实时中和斜视。</p>
+        </div>
+
+        <div class="note-grid">
+          <div class="mini-card">
+            <div class="label">当前应紧盯眼别</div>
+            <div class="val" id="noteWatchEye">双眼角膜映光 (Hirschberg)</div>
+          </div>
+          <div class="mini-card">
+            <div class="label">眼动动力学类型</div>
+            <div class="val" id="noteDynamics">静止固视 (Fixation)</div>
+          </div>
+          <div class="mini-card">
+            <div class="label">残余眼动 (水平)</div>
+            <div class="val" id="noteResH">未遮盖观察</div>
+          </div>
+          <div class="mini-card">
+            <div class="label">残余眼动 (垂直)</div>
+            <div class="val" id="noteResV">未遮盖观察</div>
+          </div>
+        </div>
+
+        <div class="record-bar">
+          <div class="record-info">
+            <span class="label">标准临床病历简写 (D 远 / N 近)</span>
+            <code id="clinicalRecordText">D: 12Δ X | N: 14Δ X'</code>
+          </div>
+          <button class="btn sm" id="btnCopyRecord">复制病历</button>
+        </div>
+
+        <div class="clinical-tip">
+          <strong>棱镜中和光学铁律（尖端指向偏斜方向）：</strong><br/>
+          • <strong>外斜 (Exo)</strong> → 放 <strong>底朝内 (BI)</strong>；<strong>内斜 (Eso)</strong> → 放 <strong>底朝外 (BO)</strong>。<br/>
+          • <strong>右眼上斜 (RHT)</strong> → 右眼放 <strong>底朝下 (BD)</strong> 或左眼放 <strong>底朝上 (BU)</strong>。<br/>
+          • <strong>过矫判断：</strong>交替遮盖时若眼球出现<strong>反向微动</strong>，说明棱镜已超过中和点，应回调至刚好不动。
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 桌面端底部栏 -->
+  <footer>
+    <div class="footer-inner">
+      <span><strong>Cover test</strong> v1.1.0</span>
+      <span>·</span>
+      <span>作者：<strong>玉米</strong></span>
+      <span>·</span>
+      <span>微信 (VX)：<strong>kwqwq3</strong></span>
+      <button class="btn sm" id="btnFooterSettings">设置 / 赞赏作者</button>
+    </div>
+  </footer>
+
+  <!-- 手机端固定原生底部导航栏 -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav">
+    <button class="nav-tab active" data-target="prism">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 21 19 3 19 12 3"></polygon></svg>
+      <span>棱镜排镜</span>
+    </button>
+    <button class="nav-tab" data-target="patient">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+      <span>眼位设定</span>
+    </button>
+    <button class="nav-tab" data-target="notes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+      <span>临床注文</span>
+    </button>
+    <button class="nav-tab" data-target="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      <span>设置</span>
+    </button>
+  </nav>
+
+  <!-- ================= 设置抽屉 (App 长期运作完整功能中心) ================= -->
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="settings-drawer" id="settingsDrawer" aria-hidden="true">
+    <div class="drawer-header">
+      <h2>设置与关于</h2>
+      <button class="icon-btn" id="btnCloseSettings" aria-label="关闭设置">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="drawer-body">
+      <!-- 1. 外观与诊室显示 -->
+      <div>
+        <div class="set-group-label">外观与暗室显示</div>
+        <div class="set-card">
+          <div class="set-row">
+            <div class="set-row-info">
+              <span class="set-row-title">主题模式</span>
+              <span class="set-row-sub">深色模式适合暗室验光环境使用</span>
+            </div>
+            <select class="set-select" id="setTheme">
+              <option value="system">跟随系统</option>
+              <option value="light">浅色明亮</option>
+              <option value="dark">深色护眼</option>
+            </select>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info">
+              <span class="set-row-title">模拟虹膜色系</span>
+              <span class="set-row-sub">适配不同人种临床观察教学</span>
+            </div>
+            <select class="set-select" id="setIrisColor">
+              <option value="brown">深棕色 (亚洲眼)</option>
+              <option value="amber">浅琥珀棕</option>
+              <option value="blue">蓝灰色</option>
+            </select>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info">
+              <span class="set-row-title">教学常亮防息屏</span>
+              <span class="set-row-sub">演示或带教时保持屏幕不自动锁屏</span>
+            </div>
+            <label class="ios-switch">
+              <input type="checkbox" id="setWakeLock" />
+              <span class="ios-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 临床检查与交互偏好 -->
+      <div>
+        <div class="set-group-label">临床检查与交互偏好</div>
+        <div class="set-card">
+          <div class="set-row">
+            <div class="set-row-info">
+              <span class="set-row-title">交替遮盖 (ACT) 速度</span>
+              <span class="set-row-sub">自动交替切换左右眼的停留时长</span>
+            </div>
+            <select class="set-select" id="setActInterval">
+              <option value="850">0.85 秒 (快速)</option>
+              <option value="1350">1.35 秒 (标准)</option>
+              <option value="2000">2.0 秒 (教学)</option>
+              <option value="2800">2.8 秒 (慢速)</option>
+            </select>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info">
+              <span class="set-row-title">棱镜微调步长</span>
+              <span class="set-row-sub">点击 +/- 按钮和滑动条的最小分度</span>
+            </div>
+            <select class="set-select" id="setPrismStep">
+              <option value="0.5">0.5Δ (精细)</option>
+              <option value="1">1Δ (临床标准)</option>
+              <option value="2">2Δ (快速排镜)</option>
+            </select>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info">
+              <span class="set-row-title">慢动作拆解倍率</span>
+              <span class="set-row-sub">开启顶部“慢放”时的动画倍速</span>
+            </div>
+            <select class="set-select" id="setSlowRate">
+              <option value="0.25">0.25x 极慢</option>
+              <option value="0.4">0.4x 推荐</option>
+              <option value="0.6">0.6x 轻慢</option>
+            </select>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info">
+              <span class="set-row-title">实战盲测通过容差</span>
+              <span class="set-row-sub">判定排镜中和达标的允许误差</span>
+            </div>
+            <select class="set-select" id="setExamTolerance">
+              <option value="1">严格 (±1.0Δ)</option>
+              <option value="2">标准 (±2.0Δ)</option>
+              <option value="3">宽松 (±3.0Δ)</option>
+            </select>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info">
+              <span class="set-row-title">触觉震动反馈</span>
+              <span class="set-row-sub">遮盖与步进微调时轻震提示 (部分机型)</span>
+            </div>
+            <label class="ios-switch">
+              <input type="checkbox" id="setHaptics" checked />
+              <span class="ios-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 实战练习统计与数据管理 -->
+      <div>
+        <div class="set-group-label">学习统计与本地数据</div>
+        <div class="set-card">
+          <div class="stats-grid">
+            <div class="stat-box">
+              <div class="s-num" id="statTotal">0</div>
+              <div class="s-lbl">累计实战</div>
+            </div>
+            <div class="stat-box">
+              <div class="s-num" id="statPass" style="color:var(--success);">0</div>
+              <div class="s-lbl">中和通过</div>
+            </div>
+            <div class="stat-box">
+              <div class="s-num" id="statRate" style="color:var(--purple);">0%</div>
+              <div class="s-lbl">达标率</div>
+            </div>
+          </div>
+          <div class="history-list" id="historyList">
+            <div style="text-align:center; font-size:12px; color:var(--muted); padding:8px 0;">暂无实战盲测记录</div>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info">
+              <span class="set-row-title">数据与缓存管理</span>
+              <span class="set-row-sub" id="savedCasesCount">已收藏 0 个自定义病例 · 全部纯本地存储</span>
+            </div>
+            <button class="btn sm danger-outline" id="btnResetData">重置数据</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. 感谢作者 / 赞赏支持 -->
+      <div>
+        <div class="set-group-label">感谢作者 · 赞赏支持</div>
+        <div class="set-card">
+          <div class="donate-card">
+            <h3>☕ 感谢作者 · 请作者喝杯咖啡</h3>
+            <p>Cover test 完全免费且无广告。如果这款工具帮到了你的视光学习或临床带教，欢迎微信扫码赞赏支持作者持续迭代更新！</p>
+            <div class="qr-frame" id="btnZoomQr" title="点击高清放大二维码">
+              <img src="./assets/donate-qr.png" alt="微信收款码 - 玉米" />
+            </div>
+            <div class="qr-hint">点击二维码可全屏放大 · 长按或截图保存后打开微信扫一扫</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. 作者信息与问题反馈 -->
+      <div>
+        <div class="set-group-label">作者信息与问题反馈</div>
+        <div class="set-card">
+          <div class="author-badge-row">
+            <div class="set-row-info">
+              <span class="set-row-title">作者昵称：玉米</span>
+              <span class="set-row-sub">微信 (VX)：<strong>kwqwq3</strong></span>
+            </div>
+            <button class="btn primary sm" id="btnCopyVx">复制微信号</button>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info">
+              <span class="set-row-title">提交 Bug 或功能建议</span>
+              <span class="set-row-sub">自动附带版本号与设备参数，复制后发给微信</span>
+            </div>
+            <button class="btn sm" id="btnCopyFeedback">复制反馈模板</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. App 安装、离线状态与合规声明 -->
+      <div>
+        <div class="set-group-label">关于 Cover test 与安装</div>
+        <div class="set-card">
+          <div class="app-about-head">
+            <img src="./icons/icon-192.png" alt="Cover test" />
+            <div class="set-row-info">
+              <span class="set-row-title" style="font-size:15px;">Cover test</span>
+              <span class="set-row-sub">版本 v1.1.0 (Build 2026.11)</span>
+              <span class="set-row-sub" id="offlineStatusText">离线引擎：检测中...</span>
+            </div>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info">
+              <span class="set-row-title">安装到手机桌面 (App 模式)</span>
+              <span class="set-row-sub">全屏运行、支持无网离线打开</span>
+            </div>
+            <button class="btn primary sm" id="btnInstallApp">安装指引</button>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info">
+              <span class="set-row-title">版本更新日志 (Changelog)</span>
+              <span class="set-row-sub">查看核心功能与算法更新记录</span>
+            </div>
+            <button class="btn sm" id="btnOpenChangelog">查看</button>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info">
+              <span class="set-row-title">医学免责声明与隐私政策</span>
+              <span class="set-row-sub">教学工具合规声明 · 零隐私收集</span>
+            </div>
+            <button class="btn sm" id="btnOpenLegal">阅读</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 通用模态弹窗 -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box" id="modalContent"></div>
+  </div>
+
+  <div class="toast" id="toast">已复制</div>
+
+  <script src="./js/app.js" defer></script>
+</body>
+</html>
